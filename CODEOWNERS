@@ -1,0 +1,8 @@
+# CODEOWNERS file
+# Đây là tệp CODEOWNERS, xác định người chủ sở hữu cho các phần của dự án.
+
+# Chủ sở hữu cho các tệp Markdown
+*.md @Blns159 @angWindy @SmrfHdl
+
+# Chủ sở hữu cho thư mục src/
+/src/ @angWindy 

@@ -1,49 +1,50 @@
 import numpy as np
 import pandas as pd
 from flask import Flask, render_template, request
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import json
-import bs4 as bs
-import urllib.request
-import pickle
 import requests
 
-# load the nlp model and tfidf vectorizer from disk
-filename = "nlp_model.pkl"
-clf = pickle.load(open(filename, "rb"))
-vectorizer = pickle.load(open("tranform.pkl", "rb"))
+# API TMDB
+ACCESS_TOKEN = "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0NTRmNDRhNWNmYjUzZGRhYTc1YjkyZmQ5YTUwYWIwNCIsInN1YiI6IjY2MjBjMTBhOTY2MWZjMDE0YmZmYjQwMCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.9efQcoH6zuKqgNEHiFBxMFK_Oep5Nx-3cQfshrVFh3E"
+API_KEY = "454f44a5cfb53ddaa75b92fd9a50ab04"
 
 
-def create_similarity():
-    data = pd.read_csv("main_data.csv")
-    # creating a count matrix
-    cv = CountVectorizer()
-    count_matrix = cv.fit_transform(data["comb"])
-    # creating a similarity score matrix
-    similarity = cosine_similarity(count_matrix)
-    return data, similarity
-
-
-def rcmd(m):
-    m = m.lower()
-    try:
-        data.head()
-        similarity.shape
-    except:
-        data, similarity = create_similarity()
-    if m not in data["movie_title"].unique():
-        return "Sorry! The movie you requested is not in our database. Please check the spelling or try with some other movies"
+def get_movie_id(movie_name):
+    base_url = "https://api.themoviedb.org/3"
+    search_endpoint = "/search/movie"
+    params = {"api_key": API_KEY, "query": movie_name}
+    response = requests.get(base_url + search_endpoint, params=params)
+    if response.status_code == 200:
+        data = response.json()
+        if data["results"]:
+            return data["results"][0]["id"]
+        else:
+            return None
     else:
-        i = data.loc[data["movie_title"] == m].index[0]
-        lst = list(enumerate(similarity[i]))
-        lst = sorted(lst, key=lambda x: x[1], reverse=True)
-        lst = lst[1:11]  # excluding first item since it is the requested movie itself
-        l = []
-        for i in range(len(lst)):
-            a = lst[i][0]
-            l.append(data["movie_title"][a])
-        return l
+        return None
+
+
+def rcmd(movie_name):  # return list[]
+    movie_id = get_movie_id(movie_name)
+    if movie_id == None:
+        return "Sorry! The movie you requested is not in our database. Please check the spelling or try with some other movies"
+
+    url = f"https://api.themoviedb.org/3/movie/{movie_id}/recommendations?language=en-US&page=1"
+
+    headers = {
+        "accept": "application/json",
+        "Authorization": f"Bearer {ACCESS_TOKEN}",
+    }
+
+    response = requests.get(url, headers=headers)
+
+    data = response.json()  # Chuyển đổi phản hồi thành đối tượng JSON
+    suggestions = []  # Danh sách để lưu trữ các tên phim
+
+    for item in data["results"]:
+        title = item["title"]  # Trích xuất tên phim từ mỗi mục trong kết quả
+        suggestions.append(title)
+
+    return suggestions[0:10]  # In ra danh sách các tên phim
 
 
 # converting list of string to list (eg. "["abc","def"]" to ["abc","def"])
@@ -55,7 +56,7 @@ def convert_to_list(my_list):
 
 
 def get_suggestions():
-    data = pd.read_csv("main_data.csv")
+    data = pd.read_csv("Data/main_data.csv")
     return list(data["movie_title"].str.capitalize())
 
 
@@ -71,8 +72,8 @@ def home():
 
 @app.route("/similarity", methods=["POST"])
 def similarity():
-    movie = request.form["name"]
-    rc = rcmd(movie)
+    movie_name = request.form["name"]
+    rc = rcmd(movie_name)
     if type(rc) == type("string"):
         return rc
     else:
@@ -144,28 +145,28 @@ def recommend():
         for i in range(len(cast_places))
     }
 
-    # web scraping to get user reviews from IMDB site
-    sauce = urllib.request.urlopen(
-        "https://www.imdb.com/title/{}/reviews?ref_=tt_ov_rt".format(imdb_id)
-    ).read()
-    soup = bs.BeautifulSoup(sauce, "lxml")
-    soup_result = soup.find_all("div", {"class": "text show-more__control"})
+    # # web scraping to get user reviews from IMDB site
+    # sauce = urllib.request.urlopen(
+    #     "https://www.imdb.com/title/{}/reviews?ref_=tt_ov_rt".format(imdb_id)
+    # ).read()
+    # soup = bs.BeautifulSoup(sauce, "lxml")
+    # soup_result = soup.find_all("div", {"class": "text show-more__control"})
 
-    reviews_list = []  # list of reviews
-    reviews_status = []  # list of comments (good or bad)
-    for reviews in soup_result:
-        if reviews.string:
-            reviews_list.append(reviews.string)
-            # passing the review to our model
-            movie_review_list = np.array([reviews.string])
-            movie_vector = vectorizer.transform(movie_review_list)
-            pred = clf.predict(movie_vector)
-            reviews_status.append("Good" if pred else "Bad")
+    # reviews_list = []  # list of reviews
+    # reviews_status = []  # list of comments (good or bad)
+    # for reviews in soup_result:
+    #     if reviews.string:
+    #         reviews_list.append(reviews.string)
+    #         # passing the review to our model
+    #         movie_review_list = np.array([reviews.string])
+    #         movie_vector = vectorizer.transform(movie_review_list)
+    #         pred = clf.predict(movie_vector)
+    #         reviews_status.append("Good" if pred else "Bad")
 
-    # combining reviews and comments into a dictionary
-    movie_reviews = {
-        reviews_list[i]: reviews_status[i] for i in range(len(reviews_list))
-    }
+    # # combining reviews and comments into a dictionary
+    # movie_reviews = {
+    #     reviews_list[i]: reviews_status[i] for i in range(len(reviews_list))
+    # }
 
     # passing all the data to the html file
     return render_template(
@@ -180,7 +181,7 @@ def recommend():
         status=status,
         genres=genres,
         movie_cards=movie_cards,
-        reviews=movie_reviews,
+        # reviews=movie_reviews,
         casts=casts,
         cast_details=cast_details,
     )

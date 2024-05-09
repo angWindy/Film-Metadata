@@ -12,7 +12,7 @@ $(function() {
   source.addEventListener('input', inputHandler);
 
   $('.movie-button').on('click',function(){
-    var my_api_key = '0837714450a4ad155a573c613d131fd5';
+    var my_api_key = '454f44a5cfb53ddaa75b92fd9a50ab04';
     var title = $('.movie').val();
     if (title=="") {
       $('.results').css('display','none');
@@ -26,7 +26,7 @@ $(function() {
 
 // will be invoked when clicking on the recommended movies
 function recommendcard(e){
-  var my_api_key = '0837714450a4ad155a573c613d131fd5';
+  var my_api_key = '454f44a5cfb53ddaa75b92fd9a50ab04';
   var title = e.getAttribute('title'); 
   load_details(my_api_key,title);
 }

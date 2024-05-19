@@ -5,8 +5,8 @@
 ![Frontend](https://img.shields.io/badge/Frontend-HTML/CSS/JS-green)
 ![API](https://img.shields.io/badge/API-TMDB-fcba03)
 
-# Video demo
-https://drive.google.com/file/d/1uPozgeee_IIZx-n3RHwHbDwRfSDciPYy/view?usp=sharing
+## Video demo
+https://youtu.be/FjzFciJR404
 
 ## Mục đích
 

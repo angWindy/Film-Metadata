@@ -5,6 +5,9 @@
 ![Frontend](https://img.shields.io/badge/Frontend-HTML/CSS/JS-green)
 ![API](https://img.shields.io/badge/API-TMDB-fcba03)
 
+# Video demo
+https://drive.google.com/file/d/1uPozgeee_IIZx-n3RHwHbDwRfSDciPYy/view?usp=sharing
+
 ## Mục đích
 
 Film-Metadata là một dự án Python Framework Frontend API cho việc tìm kiếm thông tin về các bộ phim và diễn viên. Dự án này sử dụng tập dữ liệu Movies Daily Update Dataset để cung cấp thông tin chi tiết về các bộ phim và diễn viên.
